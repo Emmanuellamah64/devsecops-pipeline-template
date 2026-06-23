@@ -1,0 +1,10 @@
+**/__pycache__
+**/*.py[cod]
+**/.env
+**/node_modules
+**/dist
+**/.git
+**/tests
+**/*.md
+**/.coverage
+**/htmlcov
