@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.routers import health
+from app.routers import health, auth
 
 app = FastAPI(
     title="DevSecOps Pipeline Template API",
@@ -19,6 +19,7 @@ app.add_middleware(
 )
 
 app.include_router(health.router, prefix="/api", tags=["health"])
+app.include_router(auth.router, prefix="/api", tags=["auth"])
 
 
 @app.get("/")
