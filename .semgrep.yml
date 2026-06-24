@@ -1,0 +1,19 @@
+rules:
+  - id: hardcoded-secret-env-fallback
+    patterns:
+      - pattern: os.environ.get($KEY, $DEFAULT)
+    message: "Environment variable '$KEY' has a hardcoded fallback '$DEFAULT'. Remove it in production."
+    languages: [python]
+    severity: WARNING
+    metadata:
+      category: security
+      owasp: "A02:2021 - Cryptographic Failures"
+
+  - id: jwt-weak-algorithm
+    patterns:
+      - pattern: jwt.encode(..., algorithm="HS256", ...)
+    message: "Consider using RS256 or ES256 for production JWT signing."
+    languages: [python]
+    severity: INFO
+    metadata:
+      category: security

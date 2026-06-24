@@ -1,0 +1,8 @@
+skips: []
+tests: []
+exclude_dirs:
+  - tests
+  - .git
+  - node_modules
+assert_used:
+  skips: []
