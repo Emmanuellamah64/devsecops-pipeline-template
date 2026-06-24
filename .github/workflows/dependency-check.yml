@@ -1,0 +1,36 @@
+name: Weekly Dependency Check
+
+on:
+  schedule:
+    - cron: "0 8 * * 1"  # Every Monday at 8am UTC
+  workflow_dispatch:
+
+jobs:
+  dependency-audit:
+    name: Python Dependency Audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install pip-audit
+        run: pip install pip-audit
+
+      - name: Run pip-audit
+        run: |
+          cd backend
+          pip-audit -r requirements.txt \
+            --format json \
+            --output ../pip-audit-report.json || true
+          pip-audit -r requirements.txt
+
+      - name: Upload audit report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: pip-audit-report
+          path: pip-audit-report.json
