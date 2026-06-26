@@ -198,17 +198,20 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Build and start application
+      - name: Build Docker image for DAST
         run: |
           docker build \
             -f docker/Dockerfile.backend \
             -t ${{ env.IMAGE_NAME }}:dast \
             .
+
+      - name: Start application for DAST
+        run: |
           docker run -d \
             --name app-dast \
             -p 8000:8000 \
             -e SECRET_KEY=dast-test-secret-key \
-            -e REPORTS_DIR=/tmp/reports \
+            -e REPORTS_DIR=/app/reports \
             ${{ env.IMAGE_NAME }}:dast
 
       - name: Wait for application to be ready
