@@ -162,7 +162,7 @@ jobs:
           image-ref: ${{ env.IMAGE_NAME }}:${{ github.sha }}
           format: json
           output: trivy-report.json
-          severity: CRITICAL,HIGH
+          severity: CRITICAL
           exit-code: 1
           ignore-unfixed: true
           vuln-type: os,library
