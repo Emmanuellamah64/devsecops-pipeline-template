@@ -14,7 +14,6 @@ frontend/dist/
 *.log
 .DS_Store
 .claude/settings.local.json
-.secrets.baseline
 bandit-report.json
 trivy-results.sarif
 report_html.html
