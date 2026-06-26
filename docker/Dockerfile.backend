@@ -1,5 +1,5 @@
 # Stage 1 — Build dependencies
-FROM python:3.11-slim AS builder
+FROM python:3.13-slim AS builder
 
 WORKDIR /build
 COPY backend/requirements.txt .
@@ -7,7 +7,7 @@ RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir -r requirements.txt --target=/build/deps
 
 # Stage 2 — Runtime (hardened, non-root)
-FROM python:3.11-slim AS runtime
+FROM python:3.13-slim AS runtime
 
 # Security: create non-root user
 RUN groupadd --gid 1001 appgroup && \
@@ -16,7 +16,7 @@ RUN groupadd --gid 1001 appgroup && \
 WORKDIR /app
 
 # Copy only compiled dependencies
-COPY --from=builder /build/deps /usr/local/lib/python3.11/site-packages/
+COPY --from=builder /build/deps /usr/local/lib/python3.13/site-packages/
 
 # Copy application code
 COPY backend/app ./app
