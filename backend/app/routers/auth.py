@@ -3,8 +3,9 @@ from datetime import datetime, timedelta
 from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, status
+import jwt
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from jose import JWTError, jwt
+from jwt.exceptions import InvalidTokenError
 from passlib.context import CryptContext
 from pydantic import BaseModel
 
@@ -54,7 +55,7 @@ def verify_token(credentials: HTTPAuthorizationCredentials = Depends(security)):
         if username is None:
             raise HTTPException(status_code=401, detail="Invalid token")
         return payload
-    except JWTError:
+    except InvalidTokenError:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Could not validate credentials",
