@@ -9,8 +9,11 @@ RUN pip install --no-cache-dir --upgrade pip && \
 # Stage 2 — Runtime (hardened, non-root)
 FROM python:3.12-slim AS runtime
 
-# Security: create non-root user
-RUN groupadd --gid 1001 appgroup && \
+# Security: apply all available OS security patches, then create non-root user
+RUN apt-get update && \
+    apt-get upgrade -y --no-install-recommends && \
+    rm -rf /var/lib/apt/lists/* && \
+    groupadd --gid 1001 appgroup && \
     useradd --uid 1001 --gid appgroup --no-create-home --shell /bin/false appuser
 
 WORKDIR /app
