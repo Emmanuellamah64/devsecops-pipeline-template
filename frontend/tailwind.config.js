@@ -3,15 +3,21 @@ export default {
   content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"],
   theme: {
     extend: {
+      fontFamily: {
+        sans: ["Inter", "system-ui", "-apple-system", "sans-serif"],
+      },
       colors: {
-        critical: "#A32D2D",
-        high: "#854F0B",
-        medium: "#185FA5",
-        low: "#0F6E56",
-        passed: "#0F6E56",
-        failed: "#A32D2D",
-        pending: "#5F5E5A",
-        running: "#185FA5",
+        critical: "#EF4444",
+        high: "#F97316",
+        medium: "#F59E0B",
+        low: "#10B981",
+        passed: "#10B981",
+        failed: "#EF4444",
+        pending: "#6B7280",
+        running: "#3B82F6",
+      },
+      animation: {
+        "pulse-slow": "pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite",
       },
     },
   },
