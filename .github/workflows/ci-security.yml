@@ -225,20 +225,12 @@ jobs:
             sleep 2
           done
 
-      - name: Create ZAP rules file
-        run: |
-          mkdir -p .zap
-          cat > .zap/rules.tsv << 'EOF'
-          10015	IGNORE	(Incomplete or No Cache-control Header Set)
-          10027	IGNORE	(Information Disclosure - Suspicious Comments)
-          EOF
-
       - name: Run OWASP ZAP baseline scan
         uses: zaproxy/action-baseline@v0.12.0
         with:
           target: http://localhost:8000
           rules_file_name: .zap/rules.tsv
-          cmd_options: -a -j
+          cmd_options: -a
 
       - name: Upload ZAP report
         uses: actions/upload-artifact@v4
