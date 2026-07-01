@@ -5,6 +5,8 @@
 ![Container: Trivy](https://img.shields.io/badge/Container-Trivy%20Scanned-blue?logo=aqua)
 ![DAST: OWASP ZAP](https://img.shields.io/badge/DAST-OWASP%20ZAP-orange)
 ![Secrets: TruffleHog](https://img.shields.io/badge/Secrets-TruffleHog-purple)
+![SBOM: Syft](https://img.shields.io/badge/SBOM-Syft%20%2B%20CycloneDX-blueviolet)
+![Signed: Cosign](https://img.shields.io/badge/Image-Cosign%20Signed-success?logo=sigstore)
 ![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)
 
 > A production-ready DevSecOps CI/CD pipeline with a real-time security dashboard.
@@ -15,13 +17,15 @@
 ## What this project does
 
 This template provides a complete **shift-left security pipeline** for Python/FastAPI applications.
-Every push triggers 6 automated security stages before deployment is allowed.
+Every push triggers 7 automated security stages before deployment is allowed.
 
 **Security controls:**
 - **SAST** — Bandit + Semgrep scan for code vulnerabilities (OWASP Top 10)
 - **Secrets detection** — TruffleHog scans full git history for leaked credentials
 - **Container scanning** — Trivy blocks deployment if CRITICAL CVEs are found
 - **DAST** — OWASP ZAP performs dynamic testing against the running application
+- **SBOM** — Syft generates Software Bill of Materials in SPDX + CycloneDX formats
+- **Image signing** — Cosign keyless signing via OIDC (no secrets to manage)
 - **Pre-commit hooks** — detect-secrets prevents secrets from ever entering the repo
 - **Hardened Docker** — non-root user, multi-stage build, minimal attack surface
 
@@ -33,16 +37,18 @@ A React TypeScript frontend visualizes all scan results in real time, refreshing
 ## Architecture
 
 ```
-+--------------+    push    +------------------------------------------+
-|  Developer   |---------->|         GitHub Actions Pipeline            |
-+--------------+           |                                            |
-       |                   |  Stage 1 -> Tests (pytest + coverage)      |
-       | pre-commit        |  Stage 2 -> SAST (Bandit + Semgrep)       |
-       v                   |  Stage 3 -> Secrets (TruffleHog)          |
-+--------------+           |  Stage 4 -> Container (Trivy)             |
-|detect-secrets|           |  Stage 5 -> DAST (OWASP ZAP)             |
-|   bandit     |           |  Stage 6 -> Deploy (Render) OK            |
-+--------------+           +------------------------------------------+
++--------------+    push    +----------------------------------------------+
+|  Developer   |---------->|          GitHub Actions Pipeline               |
++--------------+           |                                                |
+       |                   |  Stage 1 -> Tests (pytest + coverage)          |
+       | pre-commit        |  Stage 2 -> SAST (Bandit + Semgrep)           |
+       v                   |  Stage 3 -> Secrets (TruffleHog)              |
++--------------+           |  Stage 4 -> Container (Trivy)                 |
+|detect-secrets|           |  Stage 5 -> DAST (OWASP ZAP)     [parallel]  |
+|   bandit     |           |  Stage 6 -> Supply Chain          [parallel]  |
++--------------+           |             Syft SBOM + Cosign sign           |
+                           |  Stage 7 -> Deploy (Render) OK                |
+                           +----------------------------------------------+
                                               |
                                     +---------v----------+
                                     |  Security Dashboard |
@@ -65,6 +71,9 @@ A React TypeScript frontend visualizes all scan results in real time, refreshing
 | Secrets | TruffleHog, detect-secrets |
 | Container scan | Trivy |
 | DAST | OWASP ZAP |
+| SBOM | Syft (SPDX + CycloneDX) |
+| Image signing | Cosign / Sigstore (keyless OIDC) |
+| Registry | GitHub Container Registry (GHCR) |
 | Deploy | Render |
 
 ---
@@ -109,12 +118,13 @@ pre-commit install
 
 | Stage | Tool | Blocks deploy on |
 |-------|------|-----------------|
-| 1 - Unit tests | pytest | Test failure or coverage < 70% |
-| 2 - SAST | Bandit + Semgrep | HIGH severity code issues |
-| 3 - Secrets | TruffleHog | Any verified secret in git history |
-| 4 - Container | Trivy | CRITICAL or HIGH CVEs |
-| 5 - DAST | OWASP ZAP | High-risk dynamic vulnerabilities |
-| 6 - Deploy | Render | Only if all above pass |
+| 1 · Unit tests | pytest | Test failure or coverage < 70% |
+| 2 · SAST | Bandit + Semgrep | HIGH severity code issues |
+| 3 · Secrets | TruffleHog | Any verified secret in git history |
+| 4 · Container | Trivy | CRITICAL CVEs |
+| 5 · DAST | OWASP ZAP | High-risk dynamic vulnerabilities |
+| 6 · Supply Chain | Syft + Cosign | SBOM generated, image signed via OIDC |
+| 7 · Deploy | Render | Only if stages 5 + 6 both pass |
 
 ---
 

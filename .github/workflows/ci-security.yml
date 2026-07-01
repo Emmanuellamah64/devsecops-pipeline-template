@@ -245,11 +245,92 @@ jobs:
             report_html.html
             report_json.json
 
-  # ─── STAGE 6 : Deploy to Render ───────────────────────────────────────────
-  deploy:
-    name: "Stage 6 · Deploy (Render)"
+  # ─── STAGE 6 : Supply Chain Security (SBOM + Cosign) ─────────────────────
+  supply-chain:
+    name: "Stage 6 · Supply Chain (Syft SBOM + Cosign)"
     runs-on: ubuntu-latest
-    needs: dast
+    needs: container-scan
+    permissions:
+      id-token: write   # Cosign OIDC keyless — no secret required
+      packages: write   # Push image to GitHub Container Registry
+      contents: read
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push image to GHCR
+        id: build-push
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: docker/Dockerfile.backend
+          push: ${{ github.event_name != 'pull_request' }}
+          load: ${{ github.event_name == 'pull_request' }}
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/devsecops-demo:${{ github.sha }}
+            ghcr.io/${{ github.repository_owner }}/devsecops-demo:latest
+
+      - name: Install Cosign
+        uses: sigstore/cosign-installer@v3
+
+      - name: Generate SBOM — SPDX format (Syft)
+        uses: anchore/sbom-action@v0
+        with:
+          image: ghcr.io/${{ github.repository_owner }}/devsecops-demo:${{ github.sha }}
+          format: spdx-json
+          output-file: sbom.spdx.json
+          artifact-name: sbom-spdx
+
+      - name: Generate SBOM — CycloneDX format (Syft)
+        uses: anchore/sbom-action@v0
+        with:
+          image: ghcr.io/${{ github.repository_owner }}/devsecops-demo:${{ github.sha }}
+          format: cyclonedx-json
+          output-file: sbom.cyclonedx.json
+          artifact-name: sbom-cyclonedx
+
+      - name: Upload SBOM artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom-reports
+          path: |
+            sbom.spdx.json
+            sbom.cyclonedx.json
+
+      - name: Sign image with Cosign (keyless OIDC — no secret needed)
+        if: github.event_name != 'pull_request'
+        run: |
+          cosign sign --yes \
+            ghcr.io/${{ github.repository_owner }}/devsecops-demo@${{ steps.build-push.outputs.digest }}
+
+      - name: Attach SBOM attestation to signed image
+        if: github.event_name != 'pull_request'
+        run: |
+          cosign attest --yes \
+            --predicate sbom.spdx.json \
+            --type spdxjson \
+            ghcr.io/${{ github.repository_owner }}/devsecops-demo@${{ steps.build-push.outputs.digest }}
+
+      - name: Verify image signature (self-check)
+        if: github.event_name != 'pull_request'
+        run: |
+          cosign verify \
+            --certificate-identity-regexp="https://github.com/${{ github.repository }}/.github/workflows/" \
+            --certificate-oidc-issuer="https://token.actions.githubusercontent.com" \
+            ghcr.io/${{ github.repository_owner }}/devsecops-demo@${{ steps.build-push.outputs.digest }}
+
+  # ─── STAGE 7 : Deploy to Render ───────────────────────────────────────────
+  deploy:
+    name: "Stage 7 · Deploy (Render)"
+    runs-on: ubuntu-latest
+    needs: [dast, supply-chain]
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     environment: production
     env:
