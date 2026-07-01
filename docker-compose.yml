@@ -6,7 +6,7 @@ services:
       context: .
       dockerfile: docker/Dockerfile.backend
     ports:
-      - "8000:8000"
+      - "8001:8000"
     environment:
       - SECRET_KEY=${SECRET_KEY:-dev-secret-change-in-production}
       - REPORTS_DIR=/app/reports

@@ -78,7 +78,7 @@ export const ScanCard: React.FC<Props> = ({ title, icon, data, description }) =>
         ) : (
           <div className="space-y-3">
             {severityRows.map(({ key, label, bar, text }) => {
-              const count = (data as Record<string, number>)[key] ?? 0;
+              const count = (data as unknown as Record<string, number>)[key] ?? 0;
               if (count === 0) return null;
               const pct = total > 0 ? Math.max(4, Math.round((count / total) * 100)) : 4;
               return (
