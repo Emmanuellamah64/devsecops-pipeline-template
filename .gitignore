@@ -76,7 +76,8 @@ CLAUDE.md
 .claude/
 .secrets.baseline
 
-# ── Personal / office documents (never belong in source control) ──────────────
+# ── Personal documents (never belong in source control) ──────────────────────
+RAPPORT.md
 *.docx
 *.xlsx
 *.pptx
