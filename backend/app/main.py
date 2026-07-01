@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from prometheus_fastapi_instrumentator import Instrumentator
 from app.routers import health, auth, reports
 
 app = FastAPI(
@@ -21,6 +22,12 @@ app.add_middleware(
 app.include_router(health.router, prefix="/api", tags=["health"])
 app.include_router(auth.router, prefix="/api", tags=["auth"])
 app.include_router(reports.router, prefix="/api", tags=["reports"])
+
+# Expose /metrics for Prometheus scraping — excluded from Swagger docs
+Instrumentator(
+    should_group_status_codes=False,
+    excluded_handlers=[r"/metrics", r"/api/health"],
+).instrument(app).expose(app, endpoint="/metrics", include_in_schema=False)
 
 
 @app.get("/")

@@ -74,6 +74,7 @@ A React TypeScript frontend visualizes all scan results in real time, refreshing
 | SBOM | Syft (SPDX + CycloneDX) |
 | Image signing | Cosign / Sigstore (keyless OIDC) |
 | Registry | GitHub Container Registry (GHCR) |
+| Observability | Prometheus + Grafana |
 | Deploy | Render |
 
 ---
@@ -85,12 +86,14 @@ A React TypeScript frontend visualizes all scan results in real time, refreshing
 git clone https://github.com/Emmanuellamah64/devsecops-pipeline-template.git
 cd devsecops-pipeline-template
 
-# Start the full stack
+# Start the full stack (includes Prometheus + Grafana)
 docker-compose up --build
 
-# Backend API:  http://localhost:8000/api/docs
-# Dashboard:    http://localhost:5173
-# Login:        admin / securepassword
+# Backend API:   http://localhost:8000/api/docs
+# Metrics:       http://localhost:8000/metrics
+# Dashboard:     http://localhost:5173      (admin / securepassword)
+# Prometheus:    http://localhost:9090
+# Grafana:       http://localhost:3001      (admin / admin)
 ```
 
 **Run backend locally:**
